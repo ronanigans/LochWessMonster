@@ -1,12 +1,19 @@
 using UnityEngine;
+using UnityEngine.Events;
+using System.Collections;
 
-public class playerMove : MonoBehaviour
+public class EnemyFollow : MonoBehaviour
 {
-    public CharacterController Cc;
-    public Transform cameraTransform;
-    public float Gravity;
-    public float WalkSpeed;
-    private float yspeed;
+    public Transform player;
+    public float enemySpeed = 2f;
+    public float slowedSpeed = 0f;
+    public float baseSpeed = 2f;
+    public UnityEvent onHitPlayer;
+    public UnityEvent onDeath;
+    public float charges = 5f;
+    public float timer = 30f;
+    public float targetTime = 10.0f;
+    public bool timerRunning = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -16,16 +23,30 @@ public class playerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate(new Vector3(0, Input.GetAxis("Mouse X"), 0) );
-        cameraTransform.Rotate(new Vector3(-Input.GetAxis("Mouse Y"), 0, 0));
-        Vector3 move = Vector3.zero;
-        //Apply walk vector
-        move += Input.GetAxis("Vertical") * transform.forward;
-        move += Input.GetAxis("Horizontal") * transform.right;
-        move = move.normalized * WalkSpeed;
-        //Apply gravity
-        move += new Vector3(0, yspeed, 0);
-
-        Cc.Move(move * Time.deltaTime);
+        
+        if (Input.GetKeyDown(KeyCode.E) && charges > 0) {
+            timerRunning = true;
+            targetTime = 10.0f;
+            charges--;
+        } 
+        if (timerRunning && charges >= 0){
+            if (targetTime > 0){
+                enemySpeed = slowedSpeed;
+                Debug.Log(charges);
+                targetTime -= Time.deltaTime;
+            }
+        }
+        if (targetTime <= 0)
+        {
+            timerEnded();
+        }
+        transform.LookAt(player);
+        transform.Translate(enemySpeed * Time.deltaTime * Vector3.forward);
+    }
+    void timerEnded()
+    {
+        enemySpeed = baseSpeed;
+        targetTime = 0f;
+        timerRunning = false;
     }
 }
